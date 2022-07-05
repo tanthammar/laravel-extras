@@ -1,0 +1,41 @@
+{
+    "name": "tanthammar/laravel-extras",
+    "description": "Custom validation rules for the Laravel Framework",
+    "keywords": [
+        "tanthammar",
+        "laravel",
+        "validation",
+        "rules"
+    ],
+    "homepage": "https://github.com/tanthammar/laravel-extras",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tina Hammar",
+            "email": "tinahammar@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^9.0",
+        "spatie/laravel-package-tools": "^1.9.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "TantHammar\\LaravelExtras\\": "src"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TantHammar\\LaravelExtras\\LaravelExtrasServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
