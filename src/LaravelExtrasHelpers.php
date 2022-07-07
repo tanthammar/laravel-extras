@@ -2,7 +2,7 @@
 
 namespace TantHammar\LaravelExtras;
 
-class Helpers
+class LaravelExtrasHelpers
 {
     /**
      * Delete all characters except numbers in a string.
