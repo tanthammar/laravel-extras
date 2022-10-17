@@ -2,6 +2,7 @@
 
 namespace TantHammar\LaravelExtras;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -20,11 +21,11 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     {
         /**
          * Swap the order/sorting of an array, like swqp the 3rd row with the 1st. the 1st will become the 3rd.
-         * src: https://ashallendesign.co.uk/blog/how-to-swap-items-in-an-array-using-laravel-macros
+         * @see https://ashallendesign.co.uk/blog/how-to-swap-items-in-an-array-using-laravel-macros
          * Examples: Arr::swap($array, 0, 2); or Arr::swap($array, 'foo', 'bar');
          */
-        \Arr::macro('swap', static function (array $array, $keyOne, $keyTwo): array {
-            if (! \Arr::isAssoc($array)) {
+        Arr::macro('swap', static function (array $array, $keyOne, $keyTwo): array {
+            if (! Arr::isAssoc($array)) {
                 $itemOneTmp = $array[$keyOne];
 
                 $array[$keyOne] = $array[$keyTwo];
