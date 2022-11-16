@@ -3,6 +3,7 @@
 namespace TantHammar\LaravelExtras;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Validator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -18,6 +19,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     }
 
     public function bootingPackage(): void
+    {
+        $this->registerMacros();
+        $this->registerBladeDirectives();
+    }
+
+    protected function registerMacros()
     {
         /**
          * Swap the order/sorting of an array, like swqp the 3rd row with the 1st. the 1st will become the 3rd.
@@ -46,6 +53,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             }
 
             return $updatedArray;
+        });
+
+    }
+
+    protected function registerBladeDirectives()
+    {
+        Blade::directive('prettyPrint', function (mixed $expression) {
+            return "<?php echo '<pre>' . print_r($expression, true) . '</pre>'; ?>";
         });
     }
 
