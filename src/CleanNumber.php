@@ -13,6 +13,7 @@ class CleanNumber
         if ($number && $number !== '') {
             return preg_replace('/[^0-9]/', '', $number);
         }
+
         return $number;
     }
 }

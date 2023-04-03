@@ -2,9 +2,9 @@
 
 namespace TantHammar\LaravelExtras;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Validator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -21,13 +21,121 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     public function bootingPackage(): void
     {
         $this->registerMacros();
+        $this->registerBuilderMacros();
         $this->registerBladeDirectives();
     }
 
-    protected function registerMacros()
+    protected function registerBuilderMacros(): void
+    {
+        /** User::whereStartsWith('email', 'tin')->get() will return users where column 'email' starts with 'tin' */
+        Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm) {
+            if($searchTerm) {
+                $this->where($attribute, 'LIKE', "{$searchTerm}%");
+            }
+            return $this;
+        });
+
+        /** User::whereEndsWith('email', 'gmail.com')->get() will return users where column 'email' ends with 'gmail.com' */
+        Builder::macro('whereEndsWith', function (string $attribute, ?string $searchTerm) {
+            if($searchTerm) {
+                $this->where($attribute, 'LIKE', "%{$searchTerm}");
+            }
+            return $this;
+        });
+
+        /** User::whereLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina' AND 'hammar' */
+        Builder::macro('whereLike', function (string|array $attributes, ?string $searchTerm) {
+            if($searchTerm) {
+                $searchTerm = str_replace(' ', '%', $searchTerm);
+                foreach (\Arr::wrap($attributes) as $attribute) {
+                    $this->where($attribute, 'LIKE', "%{$searchTerm}%");
+                }
+            }
+
+            return $this;
+        });
+
+        /** User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
+        Builder::macro('orWhereLike', function (string|array $attributes, ?string $searchTerm) {
+            if($searchTerm) {
+                $searchTerm = str_replace(' ', '%', $searchTerm);
+                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
+                    foreach (\Arr::wrap($attributes) as $attribute) {
+                        $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
+                    }
+                });
+            }
+
+            return $this;
+        });
+
+
+        /** Case-insensitive and skipped words, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
+        Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm) {
+            if($searchTerm) {
+                $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
+                $this->whereRaw('lower('.$column.'->"$.'. app()->getLocale() .'") like ?', '%'.$searchTerm.'%');
+            }
+
+            return $this;
+        });
+
+        /** Case-insensitive and skipped words, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
+        Builder::macro('orWhereTranslatableLike', function (string $column, ?string $searchTerm) {
+            if($searchTerm) {
+                $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
+                $this->orWhereRaw('lower('.$column.'->"$.'. app()->getLocale() .'") like ?', '%'.$searchTerm.'%');
+            }
+
+            return $this;
+        });
+
+        /** @see https://freek.dev/1182-searching-models-using-a-where-like-query-in-laravel */
+        /** Post::whereRelationsLike(['name', 'text', 'author.name', 'tags.name'], $searchTerm)->get(); */
+        Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm) {
+            if($searchTerm) {
+                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
+                    foreach (\Arr::wrap($attributes) as $attribute) {
+                        $query->when(
+                            str_contains($attribute, '.'),
+                            function (Builder $query) use ($attribute, $searchTerm) {
+                                [$relationName, $relationAttribute] = explode('.', $attribute);
+
+                                $query->orWhereHas($relationName, function (Builder $query) use ($relationAttribute, $searchTerm) {
+                                    $query->where($relationAttribute, 'LIKE', "%{$searchTerm}%");
+                                });
+                            },
+                            function (Builder $query) use ($attribute, $searchTerm) {
+                                $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
+                            }
+                        );
+                    }
+                });
+            }
+
+            return $this;
+        });
+
+        /** Order query by Spatie translatable column */
+        Builder::macro('orderByTranslation', function ($field, $order = 'asc', $locale = null) {
+            if (
+                in_array(\Spatie\Translatable\HasTranslations::class, class_uses($this->model), false)
+                && in_array($field, $this->model->translatable, false)
+            ) {
+                $locale = $locale ?? app()->getLocale();
+                $field .= '->'.$locale;
+            }
+            $this->query->orderBy($field, $order);
+
+            return $this;
+        });
+    }
+
+    protected function registerMacros(): void
     {
         /**
          * Swap the order/sorting of an array, like swqp the 3rd row with the 1st. the 1st will become the 3rd.
+         *
          * @see https://ashallendesign.co.uk/blog/how-to-swap-items-in-an-array-using-laravel-macros
          * Examples: Arr::swap($array, 0, 2); or Arr::swap($array, 'foo', 'bar');
          */
@@ -54,14 +162,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
             return $updatedArray;
         });
-
     }
 
-    protected function registerBladeDirectives()
+    protected function registerBladeDirectives(): void
     {
         Blade::directive('prettyPrint', function (mixed $expression) {
             return "<?php echo '<pre>' . print_r($expression, true) . '</pre>'; ?>";
         });
     }
-
 }

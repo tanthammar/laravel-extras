@@ -12,6 +12,7 @@ class NoWhiteSpace
         if ($string) {
             return preg_replace('/\s+/', '', $string);
         }
+
         return '';
     }
 }

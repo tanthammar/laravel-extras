@@ -9,6 +9,7 @@ class DBconstraints
     /**
      * DISABLE database foreign key konstraints.<br>
      * Mysql and Postgres compat.
+     *
      * @deprecated use Schema::disableForeignKeyConstraints()
      */
     public static function disable(): void
@@ -23,6 +24,7 @@ class DBconstraints
     /**
      * ENABLE database foreign key konstraints.<br>
      * Mysql and Postgres compat.
+     *
      * @deprecated use Schema::enableForeignKeyConstraints()
      */
     public static function enable(): void
@@ -33,5 +35,4 @@ class DBconstraints
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
     }
-
 }

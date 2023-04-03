@@ -9,7 +9,8 @@ class MarkdownToHtmlString implements Htmlable
 {
     public function __construct(
         public readonly string $markdown
-    ) {}
+    ) {
+    }
 
     public function toHtml(): string
     {

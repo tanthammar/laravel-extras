@@ -4,31 +4,38 @@ namespace TantHammar\LaravelExtras;
 
 /**
  * OCR/Luhn Number generation function
+ *
  * @see https://gist.github.com/tanthammar/31e5cce3b5afd3b85aa7881cfddc23b7.
  * */
 class OCR3
+
 {
+    protected const MAX = 999999999999999999;
+
     /**
      * OCR (Luhn) Number generation function.
      * Generates OCR3 valid numbers "OCR 3 = hård kontrollnivå & referensnummer med checksiffra och variabel längdkontroll".
      *
-     * @param string $base_number
+     * @param  string  $base_number
      *   The base number that you wish to use for the OCR nr. Can be any number,
      *   but usually consists of client ID combined with invoice ID or similar.
-     *
-     * @param bool $length
+     * @param  bool  $length
      *   Use length if you want the OCR number to add a length
      *   number as the second to last digit, before the control digit.
      *   The length digit represents the length of the whole OCR, including the
      *   control digit. If the length is > 9 the second digit is used.
-     *
      * @return string
      *   the complete and ready OCR number.
+     *
+     * @throws \InvalidArgumentException
      *
      * Previous name = BookonsLuhn
      */
     public static function make(string $base_number, bool $length = true): string
     {
+        if($base_number > self::MAX) {
+            throw new \InvalidArgumentException('OCR3 base number must not be larger than 999999999999999999');
+        }
 
         // Add the length number
         if ($length) {
@@ -86,5 +93,4 @@ class OCR3
 
         return $sum;
     }
-
 }
