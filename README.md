@@ -20,7 +20,7 @@ See src/LaravelExtrasServiceProvider.php
 
 ### Convert markdown in translation strings to html for blade files
 ```php
-//Filament placeholder field with translation string containing markdown tags
+//Filament placeholder field with translation string containing Markdown tags
 
 Placeholder::make(trans('fields.accounting-chart'))
     ->disableLabel()
@@ -28,7 +28,7 @@ Placeholder::make(trans('fields.accounting-chart'))
     ->columnSpan('full')
 ```
 
-### Swap the order/sorting of an array, like swqp the 3rd row with the 1st. the 1st will become the 3rd.
+### Swap the order/sorting of an array, like swap the 3rd row with the 1st. the 1st will become the 3rd.
 
 ```php
 $assocArray = [
