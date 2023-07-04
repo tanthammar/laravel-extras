@@ -2,6 +2,7 @@
 
 namespace TantHammar\LaravelExtras;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
@@ -29,7 +30,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     {
         /** User::whereStartsWith('email', 'tin')->get() will return users where column 'email' starts with 'tin' */
         Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $this->where($attribute, 'LIKE', "{$searchTerm}%");
             }
             return $this;
@@ -37,7 +38,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** User::whereEndsWith('email', 'gmail.com')->get() will return users where column 'email' ends with 'gmail.com' */
         Builder::macro('whereEndsWith', function (string $attribute, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $this->where($attribute, 'LIKE', "%{$searchTerm}");
             }
             return $this;
@@ -45,7 +46,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** User::whereLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina' AND 'hammar' */
         Builder::macro('whereLike', function (string|array $attributes, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $searchTerm = str_replace(' ', '%', $searchTerm);
                 foreach (\Arr::wrap($attributes) as $attribute) {
                     $this->where($attribute, 'LIKE', "%{$searchTerm}%");
@@ -57,7 +58,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
         Builder::macro('orWhereLike', function (string|array $attributes, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $searchTerm = str_replace(' ', '%', $searchTerm);
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
@@ -72,9 +73,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive and skipped words, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
         Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->whereRaw('lower('.$column.'->"$.'. app()->getLocale() .'") like ?', '%'.$searchTerm.'%');
+                $this->whereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
@@ -82,9 +83,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive and skipped words, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
         Builder::macro('orWhereTranslatableLike', function (string $column, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->orWhereRaw('lower('.$column.'->"$.'. app()->getLocale() .'") like ?', '%'.$searchTerm.'%');
+                $this->orWhereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
@@ -93,7 +94,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** @see https://freek.dev/1182-searching-models-using-a-where-like-query-in-laravel */
         /** Post::whereRelationsLike(['name', 'text', 'author.name', 'tags.name'], $searchTerm)->get(); */
         Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm) {
-            if($searchTerm) {
+            if ($searchTerm) {
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->when(
@@ -123,9 +124,35 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 && in_array($field, $this->model->translatable, false)
             ) {
                 $locale = $locale ?? app()->getLocale();
-                $field .= '->'.$locale;
+                $field .= '->' . $locale;
             }
             $this->query->orderBy($field, $order);
+
+            return $this;
+        });
+
+        /** Overlapping dates query */
+        Builder::macro('whereOverlaps', function (
+            string                           $startColumn,
+            string                           $endColumn,
+            string|CarbonInterface|\DateTimeInterface $startDateTime,
+            string|CarbonInterface|\DateTimeInterface $endDateTime,
+                                             $tz = null)
+        {
+            $tz = $tz ?? config('app.timezone');
+            $startDateTime = is_a($startDateTime, 'DateTimeInterface')  ? $startDateTime : \Date::parse($startDateTime, $tz);
+            $endDateTime = is_a($endDateTime, 'DateTimeInterface') ? $endDateTime : \Date::parse($endDateTime, $tz);
+
+            $this->where(
+                fn($query) => $query
+                    ->orWhereBetween($startColumn, [$startDateTime, $endDateTime])
+                    ->orWhereBetween($endColumn, [$startDateTime, $endDateTime])
+                    ->orWhere(
+                        fn($query) => $query
+                            ->where($startColumn, "<=", $startDateTime)
+                            ->where($endColumn, ">=", $endDateTime)
+                    )
+            );
 
             return $this;
         });
@@ -140,7 +167,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
          * Examples: Arr::swap($array, 0, 2); or Arr::swap($array, 'foo', 'bar');
          */
         Arr::macro('swap', static function (array $array, $keyOne, $keyTwo): array {
-            if (! Arr::isAssoc($array)) {
+            if (!Arr::isAssoc($array)) {
                 $itemOneTmp = $array[$keyOne];
 
                 $array[$keyOne] = $array[$keyTwo];
