@@ -223,6 +223,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
             return $this;
         });
+
+        Builder::macro('existsById', function (int $id): bool {
+            return $this->where('id', $id)->exists();
+        });
+
+        Builder::macro('existsByUuid', function (string $uuid): bool {
+            return $this->where('uuid', $uuid)->exists();
+        });
     }
 
     protected function registerMacros(): void
