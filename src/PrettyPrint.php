@@ -12,6 +12,6 @@ class PrettyPrint
 {
     public static function make(mixed $content): string
     {
-        return '<pre>'.print_r($content, true).'</pre>';
+        return '<pre>' . print_r($content, true) . '</pre>';
     }
 }

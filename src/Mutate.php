@@ -13,5 +13,4 @@ class Mutate
     {
         return $value === 'b:0;' || @unserialize($value) !== false;
     }
-
 }

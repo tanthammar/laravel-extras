@@ -38,7 +38,6 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             return $this;
         });
 
-
         Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
@@ -54,6 +53,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $searchTerm = strtolower($searchTerm);
                 $this->where($attribute, 'LIKE', "%{$searchTerm}");
             }
+
             return $this;
         });
 
@@ -62,11 +62,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $searchTerm = strtolower($searchTerm);
                 $this->orWhere($attribute, 'LIKE', "%{$searchTerm}");
             }
+
             return $this;
         });
 
         /** Case-insensitive, User::whereLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina hammar' */
-        Builder::macro('whereLike', function (string|array $attributes, ?string $searchTerm) {
+        Builder::macro('whereLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
                 foreach (\Arr::wrap($attributes) as $attribute) {
@@ -78,7 +79,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina hammar' */
-        Builder::macro('orWhereLike', function (string|array $attributes, ?string $searchTerm) {
+        Builder::macro('orWhereLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
@@ -92,7 +93,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::whereContains(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina' AND 'hammar' */
-        Builder::macro('whereContains', function (string|array $attributes, ?string $searchTerm) {
+        Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 foreach (\Arr::wrap($attributes) as $attribute) {
@@ -104,7 +105,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
-        Builder::macro('orWhereContains', function (string|array $attributes, ?string $searchTerm) {
+        Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
@@ -116,7 +117,6 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
             return $this;
         });
-
 
         /** Case-insensitive, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
         Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm) {
@@ -200,24 +200,24 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Overlapping dates query */
         Builder::macro('whereOverlaps', function (
-            string                           $startColumn,
-            string                           $endColumn,
-            string|CarbonInterface|\DateTimeInterface $startDateTime,
-            string|CarbonInterface|\DateTimeInterface $endDateTime,
-                                             $tz = null)
-        {
+            string $startColumn,
+            string $endColumn,
+            string | CarbonInterface | \DateTimeInterface $startDateTime,
+            string | CarbonInterface | \DateTimeInterface $endDateTime,
+            $tz = null
+        ) {
             $tz = $tz ?? config('app.timezone');
-            $startDateTime = is_a($startDateTime, 'DateTimeInterface')  ? $startDateTime : \Date::parse($startDateTime, $tz);
+            $startDateTime = is_a($startDateTime, 'DateTimeInterface') ? $startDateTime : \Date::parse($startDateTime, $tz);
             $endDateTime = is_a($endDateTime, 'DateTimeInterface') ? $endDateTime : \Date::parse($endDateTime, $tz);
 
             $this->where(
-                fn($query) => $query
+                fn ($query) => $query
                     ->orWhereBetween($startColumn, [$startDateTime, $endDateTime])
                     ->orWhereBetween($endColumn, [$startDateTime, $endDateTime])
                     ->orWhere(
-                        fn($query) => $query
-                            ->where($startColumn, "<=", $startDateTime)
-                            ->where($endColumn, ">=", $endDateTime)
+                        fn ($query) => $query
+                            ->where($startColumn, '<=', $startDateTime)
+                            ->where($endColumn, '>=', $endDateTime)
                     )
             );
 
@@ -242,7 +242,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
          * Examples: Arr::swap($array, 0, 2); or Arr::swap($array, 'foo', 'bar');
          */
         Arr::macro('swap', static function (array $array, $keyOne, $keyTwo): array {
-            if (!Arr::isAssoc($array)) {
+            if (! Arr::isAssoc($array)) {
                 $itemOneTmp = $array[$keyOne];
 
                 $array[$keyOne] = $array[$keyTwo];

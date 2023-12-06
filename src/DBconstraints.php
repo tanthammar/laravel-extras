@@ -14,7 +14,7 @@ class DBconstraints
      */
     public static function disable(): void
     {
-        if ('pgsql' === config('database.default')) {
+        if (config('database.default') === 'pgsql') {
             DB::statement('SET CONSTRAINTS ALL DEFERRED');
         } else {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -29,7 +29,7 @@ class DBconstraints
      */
     public static function enable(): void
     {
-        if ('pgsql' === config('database.default')) {
+        if (config('database.default') === 'pgsql') {
             DB::statement('SET CONSTRAINTS ALL IMMEDIATE');
         } else {
             DB::statement('SET FOREIGN_KEY_CHECKS=1');

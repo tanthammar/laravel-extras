@@ -8,7 +8,6 @@ namespace TantHammar\LaravelExtras;
  * @see https://gist.github.com/tanthammar/31e5cce3b5afd3b85aa7881cfddc23b7.
  * */
 class OCR3
-
 {
     protected const MAX = 999999999999999999;
 
@@ -33,7 +32,7 @@ class OCR3
      */
     public static function make(string $base_number, bool $length = true): string
     {
-        if($base_number > self::MAX) {
+        if ($base_number > self::MAX) {
             throw new \InvalidArgumentException('OCR3 base number must not be larger than 999999999999999999');
         }
 
@@ -57,7 +56,7 @@ class OCR3
         // Get the diff between the sum and the nearest two digit whole number
         $control_digit = abs((ceil($sum / 10) * 10) - $sum);
 
-        return $base_number.$control_digit;
+        return $base_number . $control_digit;
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace TantHammar\LaravelExtras;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
 /**
@@ -20,15 +19,13 @@ class MoneyIntegerCast implements CastsAttributes
 
     /**
      * The amount of digits.
-     *
-     * @var int
      */
     protected int $digits;
 
     /**
      * Constructor
      *
-     * @param int $digits Nr of decimals.
+     * @param  int  $digits Nr of decimals.
      * @return void
      *
      * @throws InvalidArgumentException Thrown if digits is < 1.
@@ -55,6 +52,6 @@ class MoneyIntegerCast implements CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes): int
     {
-        return (int)(round($value, $this->digits) * (10 ** $this->digits));
+        return (int) (round($value, $this->digits) * (10 ** $this->digits));
     }
 }
