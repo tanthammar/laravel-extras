@@ -93,12 +93,12 @@ class OCR3
         return $sum;
     }
 
-    /** This function will break the MAX value in year 2286 */
+    /**
+     * This function will break the MAX value in year 2286
+     * Suggest adding a sleep(0.000001) to avoid collision
+     */
     public static function fromMicroSecond()
     {
-        //sleep 1 microsecond to avoid collision
-        sleep(0.000001);
-
         $microtimeStr = (int) str_replace(".", "", strval(microtime(true)));
         return self::make($microtimeStr);
     }
