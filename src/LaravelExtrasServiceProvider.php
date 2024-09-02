@@ -118,41 +118,77 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             return $this;
         });
 
-        /** Case-insensitive, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
-        Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm) {
+        /**
+         * Case-insensitive, Event::whereTranslatableStartsWith('name', 'Foo')->get() will
+         * return events where localized 'name' starts with 'Foo' or 'foo'
+         */
+        Builder::macro('whereTranslatableStartsWith', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
             if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
+                $searchTerm = strtolower($searchTerm) . '%';
+                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', [$searchTerm]);
+            }
+            return $this;
+        });
+
+        /**
+         * Case-insensitive, Event::orWhereTranslatableStartsWith('name', 'Foo bar')->get() will
+         * return events where localized 'name' starts with 'Foo Bar' or 'foo bar'
+         */
+        Builder::macro('orWhereTranslatableStartsWith', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
+            if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
+                $searchTerm = strtolower($searchTerm) . '%';
+                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', [$searchTerm]);
+            }
+            return $this;
+        });
+
+        /** Case-insensitive, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
+        Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
+            if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm);
-                $this->whereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
+                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
         });
 
         /** Case-insensitive, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
-        Builder::macro('orWhereTranslatableLike', function (string $column, ?string $searchTerm) {
+        Builder::macro('orWhereTranslatableLike', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
             if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm);
-                $this->orWhereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
+                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
         });
 
         /** Case-insensitive and skipped words, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
-        Builder::macro('whereTranslatableContains', function (string $column, ?string $searchTerm) {
+        Builder::macro('whereTranslatableContains', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
             if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->whereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
+                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
         });
 
         /** Case-insensitive and skipped words, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
-        Builder::macro('orWhereTranslatableContains', function (string $column, ?string $searchTerm) {
+        Builder::macro('orWhereTranslatableContains', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
             if ($searchTerm) {
+                $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->orWhereRaw('lower(' . $column . '->"$.' . app()->getLocale() . '") like ?', '%' . $searchTerm . '%');
+                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
             }
 
             return $this;
@@ -160,7 +196,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** @see https://freek.dev/1182-searching-models-using-a-where-like-query-in-laravel */
         /** Post::whereRelationsLike(['name', 'text', 'author.name', 'tags.name'], $searchTerm)->get(); */
-        Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm) {
+        Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm): Builder
+        {
             if ($searchTerm) {
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
@@ -185,7 +222,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Order query by Spatie translatable column */
-        Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null) {
+        Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null): Builder
+        {
             if (
                 in_array(\Spatie\Translatable\HasTranslations::class, class_uses($this->model), false)
                 && in_array($field, $this->model->translatable, false)
@@ -205,7 +243,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             string | CarbonInterface | \DateTimeInterface $startDateTime,
             string | CarbonInterface | \DateTimeInterface $endDateTime,
             $tz = null
-        ) {
+        ): Builder {
             $tz = $tz ?? config('app.timezone');
             $startDateTime = is_a($startDateTime, 'DateTimeInterface') ? $startDateTime : \Date::parse($startDateTime, $tz);
             $endDateTime = is_a($endDateTime, 'DateTimeInterface') ? $endDateTime : \Date::parse($endDateTime, $tz);
