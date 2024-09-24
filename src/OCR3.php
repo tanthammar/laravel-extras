@@ -2,6 +2,8 @@
 
 namespace TantHammar\LaravelExtras;
 
+use Illuminate\Support\Facades\DB;
+
 /**
  * OCR/Luhn Number generation function
  *
@@ -95,11 +97,24 @@ class OCR3
 
     /**
      * This function will break the MAX value in year 2286
-     * Suggest adding a sleep(0.000001) to avoid collision
+     * It uses a single table to ensure cross table uniqueness.
      */
-    public static function fromMicroSecond()
+    public static function fromMicroSecond(): string
     {
-        $microtimeStr = (int) str_replace(".", "", strval(microtime(true)));
-        return self::make($microtimeStr);
+        return retry(10, static function () {
+            //sleep for 0.000001 seconds to avoid collision
+            usleep(100);
+
+            $microtimeStr = (int) str_replace(".", "", strval(microtime(true)));
+            $ocr = self::make($microtimeStr);
+
+            //use db constraints to catch duplicate entries
+            DB::table('ocr_numbers')->insert([
+                'ocr' => $ocr,
+            ]);
+
+            return $ocr;
+        }, 1);
+
     }
 }

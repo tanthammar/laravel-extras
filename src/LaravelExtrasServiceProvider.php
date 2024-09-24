@@ -16,7 +16,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /*
          * More info: https://github.com/spatie/laravel-package-tools
          */
-        $package->name('laravel-rules');
+        $package->name('laravel-rules')
+            ->hasMigration('create_ocr_numbers_table');
     }
 
     public function bootingPackage(): void

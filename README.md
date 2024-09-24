@@ -15,6 +15,15 @@ See src/...
 ## Macros
 See src/LaravelExtrasServiceProvider.php
 
+## Databases
+Please observe that this package publishes a migration file for a table called `ocr_numbers`.
+It is used to assure cross table uniqueness of ocr-numbers.
+Publish the migration file:
+
+```bash
+php artisan vendor:publish --provider="Tanthammar\LaravelExtras\LaravelExtrasServiceProvider" --tag="migrations"
+```
+
 
 ## Examples
 
