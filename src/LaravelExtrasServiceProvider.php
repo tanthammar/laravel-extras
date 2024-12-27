@@ -83,7 +83,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
                     }
@@ -109,7 +109,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
                     }
