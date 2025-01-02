@@ -225,10 +225,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Order query by Spatie translatable column */
         Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null): Builder
         {
-            if (
-                in_array(\Spatie\Translatable\HasTranslations::class, class_uses($this->model), false)
-                && in_array($field, $this->model->translatable, false)
-            ) {
+            if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, false)) {
                 $locale = $locale ?? app()->getLocale();
                 $field .= '->' . $locale;
             }
