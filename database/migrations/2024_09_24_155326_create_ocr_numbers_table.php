@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        //see OCR3::fromMicroSecond()
         Schema::create('ocr_numbers', static function (Blueprint $table) {
             $table->unsignedBigInteger('ocr')->unique();
         });
