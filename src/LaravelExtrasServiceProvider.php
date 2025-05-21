@@ -225,21 +225,21 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Order query by Spatie translatable column */
         Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null): Builder
         {
+            $collation = $collation = match (app()->getLocale()) {
+                'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
+                'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
+                'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
+                'da' => 'utf8mb4_da_0900_ai_ci', // danish
+                'no' => 'utf8mb4_nb_0900_ai_ci', // norwegian bokmål
+                default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
+            };
+
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
                 $locale = $locale ?? app()->getLocale();
-                $collation = $collation = match (app()->getLocale()) {
-                    'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
-                    'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
-                    'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
-                    'da' => 'utf8mb4_da_0900_ai_ci', // danish
-                    'no' => 'utf8mb4_nb_0900_ai_ci', // norwegian bokmål
-                    default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
-                };
-                $this->query->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order");
-                return $this;
+                return $this->query->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order");
             }
-            $this->query->orderBy($field, $order);
-            return $this;
+
+            return $this->query->orderByRaw("$field COLLATE $collation $order");
         });
 
         /** Overlapping dates query */
