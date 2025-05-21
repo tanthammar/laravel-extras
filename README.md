@@ -3,6 +3,7 @@
 ## Requirements
 - PHP 8.1
 - Laravel v9.0
+- MySQL db (for builder macros using raw sql)
 
 ## Installation
 ```bash
