@@ -236,10 +236,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
                 $locale = $locale ?? app()->getLocale();
-                return $this->query->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order");
+                $this->query->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order");
+                return $this;
             }
 
-            return $this->query->orderByRaw("$field COLLATE $collation $order");
+            $this->query->orderByRaw("$field COLLATE $collation $order");
+            return $this;
         });
 
         /** Overlapping dates query */
