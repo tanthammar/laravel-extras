@@ -222,25 +222,51 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             return $this;
         });
 
-        /** Order query by Spatie translatable column */
+        /** Order alphabetically on Spatie translatable column */
         Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null): Builder
         {
-            $collation = $collation = match (app()->getLocale()) {
-                'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
-                'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
-                'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
-                'da' => 'utf8mb4_da_0900_ai_ci', // danish
-                'no' => 'utf8mb4_nb_0900_ai_ci', // norwegian bokmål
-                default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
-            };
+
+            $locale ??= app()->getLocale();
+            $driver = config('database.default');
+
+            if ($driver === 'pgsql') {
+                // PostgreSQL collations follow the pattern: language_territory.encoding
+                $collation  = match ($locale) {
+                    'sv' => 'sv_SE.utf8', // Swedish
+                    'es' => 'es_ES.utf8', // Spanish
+                    'de' => 'de_DE.utf8', // German
+                    'da' => 'da_DK.utf8', // Danish
+                    'no' => 'nb_NO.utf8', // Norwegian Bokmu00e5l
+                    default => 'en_US.utf8' // Default English
+                };
+            } else {
+                // @src https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-sets.html
+                $collation = match ($locale) {
+                    'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
+                    'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
+                    'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
+                    'da' => 'utf8mb4_da_0900_ai_ci', // danish
+                    'no' => 'utf8mb4_nb_0900_ai_ci', // norwegian bokmål
+                    default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
+                };
+            }
 
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
-                $locale = $locale ?? app()->getLocale();
-                $this->query->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order");
+                match ($driver) {
+                    'pgsql' => $this->orderByRaw("$field->>'$locale' COLLATE \"$collation\" $order"),
+                    'mysql' => $this->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order"),
+                    default => $this->orderBy($field, $order)
+                };
+
                 return $this;
             }
 
-            $this->query->orderByRaw("$field COLLATE $collation $order");
+            match ($driver) {
+                'pgsql' => $this->orderByRaw("$field COLLATE \"$collation\" $order"),
+                'mysql' => $this->orderByRaw("$field COLLATE $collation $order"),
+                default => $this->orderBy($field, $order)
+            };
+
             return $this;
         });
 
