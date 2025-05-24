@@ -268,12 +268,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if ($driver === 'pgsql') {
                 // PostgreSQL collations follow the pattern: language_territory.encoding
                 $collation  = match ($locale) {
-                    'sv' => 'sv_SE.utf8', // Swedish
-                    'es' => 'es_ES.utf8', // Spanish
-                    'de' => 'de_DE.utf8', // German
-                    'da' => 'da_DK.utf8', // Danish
-                    'no' => 'nb_NO.utf8', // Norwegian Bokmu00e5l
-                    default => 'en_US.utf8' // Default English
+                    'sv' => 'sv_SE.UTF-8', // Swedish
+                    'es' => 'es_ES.UTF-8', // Spanish
+                    'de' => 'de_DE.UTF-8', // German
+                    'da' => 'da_DK.UTF-8', // Danish
+                    'no' => 'nb_NO.UTF-8', // Norwegian Bokmål
+                    default => 'en_US.UTF-8' // Default English
                 };
             } else {
                 // @src https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-sets.html
