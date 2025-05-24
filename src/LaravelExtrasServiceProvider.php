@@ -128,7 +128,13 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', [$searchTerm]);
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->whereStartsWith($column, $searchTerm)
+                };
             }
             return $this;
         });
@@ -142,7 +148,13 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', [$searchTerm]);
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->orWhereStartsWith($column, $searchTerm)
+                };
             }
             return $this;
         });
@@ -152,8 +164,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
-                $searchTerm = strtolower($searchTerm);
-                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
+                $searchTerm = '%' . strtolower($searchTerm) . '%';
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->whereLike($column, $searchTerm)
+                };
             }
 
             return $this;
@@ -164,8 +182,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
-                $searchTerm = strtolower($searchTerm);
-                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
+                $searchTerm = '%' . strtolower($searchTerm) . '%';
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->orWhereLike($column, $searchTerm)
+                };
             }
 
             return $this;
@@ -176,8 +200,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
-                $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->whereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
+                $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->whereContains($column, $searchTerm)
+                };
             }
 
             return $this;
@@ -188,8 +218,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
             if ($searchTerm) {
                 $locale = $locale ?: app()->getLocale();
-                $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->orWhereRaw('lower(' . $column . '->"$.' . $locale . '") like ?', '%' . $searchTerm . '%');
+                $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
+                $driver = config('database.default');
+                
+                match ($driver) {
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
+                    default => $this->orWhereContains($column, $searchTerm)
+                };
             }
 
             return $this;
