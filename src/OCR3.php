@@ -98,6 +98,7 @@ class OCR3
     /**
      * This function will break the MAX value in year 2286
      * It uses a single table to ensure cross table uniqueness.
+     * @throws \Throwable
      */
     public static function fromMicroSecond(): string
     {
@@ -109,9 +110,12 @@ class OCR3
             $ocr = self::make($microtimeStr);
 
             //use db constraints to catch duplicate entries
-            DB::table('ocr_numbers')->insert([
-                'ocr' => $ocr,
-            ]);
+            DB::transaction(static function () use ($ocr) {
+                //use db constraints to catch duplicate entries
+                return DB::table('ocr_numbers')->insert([
+                    'ocr' => $ocr,
+                ]);
+            });
 
             return $ocr;
         }, 1);
