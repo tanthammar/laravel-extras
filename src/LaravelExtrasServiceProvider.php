@@ -2,8 +2,10 @@
 
 namespace TantHammar\LaravelExtras;
 
+use App\Providers\AppServiceProvider;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Spatie\LaravelPackageTools\Package;
@@ -264,28 +266,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
             $locale ??= app()->getLocale();
             $driver = config('database.default');
-
-            if ($driver === 'pgsql') {
-                // PostgreSQL collations follow the pattern: language_territory.encoding
-                $collation  = match ($locale) {
-                    'sv' => 'sv_SE.UTF-8', // Swedish
-                    'es' => 'es_ES.UTF-8', // Spanish
-                    'de' => 'de_DE.UTF-8', // German
-                    'da' => 'da_DK.UTF-8', // Danish
-                    'no' => 'nb_NO.UTF-8', // Norwegian Bokmål
-                    default => 'en_US.UTF-8' // Default English
-                };
-            } else {
-                // @src https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-sets.html
-                $collation = match ($locale) {
-                    'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
-                    'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
-                    'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
-                    'da' => 'utf8mb4_da_0900_ai_ci', // danish
-                    'no' => 'utf8mb4_nb_0900_ai_ci', // norwegian bokmål
-                    default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
-                };
-            }
+            $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
                 match ($driver) {
@@ -301,6 +282,32 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 'pgsql' => $this->orderByRaw("$field COLLATE \"$collation\" $order"),
                 'mysql' => $this->orderByRaw("$field COLLATE $collation $order"),
                 default => $this->orderBy($field, $order)
+            };
+
+            return $this;
+        });
+
+        Builder::macro('orderByLocale', function (string $column, string $order = 'asc'): Builder {
+            $driver = config('database.default');
+            $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
+
+            match ($driver) {
+                'pgsql' => $this->orderByRaw("$column COLLATE \"$collation\" $order"),
+                'mysql' => $this->orderByRaw("$column COLLATE $collation $order"),
+                default => $this->orderBy($column, $order)
+            };
+
+            return $this;
+        });
+
+        QueryBuilder::macro('orderByLocale', function (string $column, string $order = 'asc'): QueryBuilder {
+            $driver = config('database.default');
+            $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
+
+            match ($driver) {
+                'pgsql' => $this->orderByRaw("$column COLLATE \"$collation\" $order"),
+                'mysql' => $this->orderByRaw("$column COLLATE $collation $order"),
+                default => $this->orderBy($column, $order)
             };
 
             return $this;
@@ -339,6 +346,38 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('existsByUuid', function (string $uuid): bool {
             return $this->where('uuid', $uuid)->exists();
         });
+    }
+
+    public static function getLocaleCollation(string $driver): string
+    {
+        $locale = app()->getLocale();
+
+        if ($driver === 'pgsql') {
+            // PostgreSQL collations follow the pattern: language_territory.encoding
+            // Try to use ICU collations first (most common in both local and hosted services)
+            return match ($locale) {
+                'sv' => 'sv-SE-x-icu', // Swedish
+                'es' => 'es-ES-x-icu', // Spanish
+                'de' => 'de-DE-x-icu', // German
+                'da' => 'da-DK-x-icu', // Danish
+                'no' => 'nb-NO-x-icu', // Norwegian Bokmu00e5l
+                default => 'en-US-x-icu' // Default English
+            };
+        }
+
+        if ($driver === 'mysql') {
+            // @src https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-sets.html
+            return match ($locale) {
+                'sv' => 'utf8mb4_sv_0900_ai_ci', // swedish
+                'es' => 'utf8mb4_es_0900_ai_ci', // spanish modern
+                'de' => 'utf8mb4_de_pb_0900_ai_ci', // german phonebook
+                'da' => 'utf8mb4_da_0900_ai_ci', // danish
+                'no' => 'utf8mb4_nb_0900_ai_ci', // Norwegian Bokmål
+                default => 'utf8mb4_0900_ai_ci' // v9 (latest) and largest set of unicode chars
+            };
+        }
+
+        return '';
     }
 
     protected function registerMacros(): void
