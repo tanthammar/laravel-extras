@@ -98,11 +98,13 @@ class OCR3
     /**
      * This function will break the MAX value in year 2286
      * It uses a single table to ensure cross table uniqueness.
+     * Always use this function outside of a transaction, add value to a $param before using it
      * @throws \Throwable
      */
     public static function fromMicroSecond(): string
     {
         return retry(10, static function () {
+
             //sleep for 0.000001 seconds to avoid collision
             usleep(100);
 
