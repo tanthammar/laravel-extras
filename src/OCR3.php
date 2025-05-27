@@ -61,6 +61,13 @@ class OCR3
         return $base_number . $control_digit;
     }
 
+
+    /** not unique, simple random */
+    public static function fake(): string
+    {
+        return self::make(fake()->randomDigitNotNull(6));
+    }
+
     /**
      * Helper function that doubles every other digit in the array.
      */
