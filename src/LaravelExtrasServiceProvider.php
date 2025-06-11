@@ -35,7 +35,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->where($attribute, 'LIKE', "{$searchTerm}%");
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->where($attribute, $operator, "{$searchTerm}%");
             }
 
             return $this;
@@ -44,7 +45,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->orWhere($attribute, 'LIKE', "{$searchTerm}%");
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->orWhere($attribute, $operator, "{$searchTerm}%");
             }
 
             return $this;
@@ -54,7 +56,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereEndsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->where($attribute, 'LIKE', "%{$searchTerm}");
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->where($attribute, $operator, "%{$searchTerm}");
             }
 
             return $this;
@@ -63,7 +66,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereEndsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->orWhere($attribute, 'LIKE', "%{$searchTerm}");
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->orWhere($attribute, $operator, "%{$searchTerm}");
             }
 
             return $this;
@@ -73,8 +77,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
                 foreach (\Arr::wrap($attributes) as $attribute) {
-                    $this->where($attribute, 'LIKE', "%{$searchTerm}%");
+                    $this->where($attribute, $operator, "%{$searchTerm}%");
                 }
             }
 
@@ -85,9 +90,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower($searchTerm);
-                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm, $operator) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
-                        $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
+                        $query->orWhere($attribute, $operator, "%{$searchTerm}%");
                     }
                 });
             }
@@ -99,8 +105,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
                 foreach (\Arr::wrap($attributes) as $attribute) {
-                    $this->where($attribute, 'LIKE', "%{$searchTerm}%");
+                    $this->where($attribute, $operator, "%{$searchTerm}%");
                 }
             }
 
@@ -111,9 +118,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm, $operator) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
-                        $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
+                        $query->orWhere($attribute, $operator, "%{$searchTerm}%");
                     }
                 });
             }
@@ -131,9 +139,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->whereStartsWith($column, $searchTerm)
                 };
@@ -151,9 +159,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->orWhereStartsWith($column, $searchTerm)
                 };
@@ -168,9 +176,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->whereLike($column, $searchTerm)
                 };
@@ -186,9 +194,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->orWhereLike($column, $searchTerm)
                 };
@@ -204,9 +212,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->whereContains($column, $searchTerm)
                 };
@@ -222,9 +230,9 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
                 $driver = config('database.default');
-                
+
                 match ($driver) {
-                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') like ?", [$searchTerm]),
+                    'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
                     'mysql' => $this->orWhereRaw("lower($column->\"$.{$locale}\") like ?", [$searchTerm]),
                     default => $this->orWhereContains($column, $searchTerm)
                 };
@@ -238,7 +246,8 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm): Builder
         {
             if ($searchTerm) {
-                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
+                $operator = LaravelExtrasServiceProvider::getLikeOperator();
+                $this->where(function (Builder $query) use ($attributes, $searchTerm, $operator) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->when(
                             str_contains($attribute, '.'),
@@ -246,11 +255,11 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                                 [$relationName, $relationAttribute] = explode('.', $attribute);
 
                                 $query->orWhereHas($relationName, function (Builder $query) use ($relationAttribute, $searchTerm) {
-                                    $query->where($relationAttribute, 'LIKE', "%{$searchTerm}%");
+                                    $query->where($relationAttribute, $operator, "%{$searchTerm}%");
                                 });
                             },
                             function (Builder $query) use ($attribute, $searchTerm) {
-                                $query->orWhere($attribute, 'LIKE', "%{$searchTerm}%");
+                                $query->orWhere($attribute, $operator, "%{$searchTerm}%");
                             }
                         );
                     }
@@ -418,5 +427,11 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Blade::directive('prettyPrint', function (mixed $expression) {
             return "<?php echo '<pre>' . print_r($expression, true) . '</pre>'; ?>";
         });
+    }
+
+    public static function getLikeOperator(): string
+    {
+        $driver = config('database.default');
+        return $driver === 'psql' ? 'ILIKE' : 'LIKE';
     }
 }
