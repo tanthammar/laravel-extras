@@ -432,6 +432,6 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     public static function getLikeOperator(): string
     {
         $driver = config('database.default');
-        return $driver === 'psql' ? 'ILIKE' : 'LIKE';
+        return $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
     }
 }
