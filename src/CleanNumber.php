@@ -8,7 +8,7 @@ namespace TantHammar\LaravelExtras;
  */
 class CleanNumber
 {
-    public static function make(string $number = ''): string | array | null
+    public static function make(?string $number = ''): string | array | null
     {
         if ($number && $number !== '') {
             return preg_replace('/[^0-9]/', '', $number);
