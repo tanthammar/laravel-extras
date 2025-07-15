@@ -34,19 +34,16 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive, User::whereStartsWith('email', 'tin')->get() will return users where column 'email' starts with 'tin' */
         Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->where($attribute, $operator, "{$searchTerm}%");
+                $this->whereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
 
             return $this;
         });
 
+        /** Case-insensitive */
         Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->orWhere($attribute, $operator, "{$searchTerm}%");
+                $this->orWhereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
 
             return $this;
@@ -55,9 +52,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive, User::whereEndsWith('email', 'gmail.com')->get() will return users where column 'email' ends with 'gmail.com' */
         Builder::macro('whereEndsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->where($attribute, $operator, "%{$searchTerm}");
+                $this->whereLike($attribute, "%{$searchTerm}", caseSensitive: false);
             }
 
             return $this;
@@ -65,35 +60,29 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         Builder::macro('orWhereEndsWith', function (string $attribute, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->orWhere($attribute, $operator, "%{$searchTerm}");
+                $this->orWhereLike($attribute, "%{$searchTerm}", caseSensitive: false);
             }
 
             return $this;
         });
 
-        /** Case-insensitive, User::whereLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina hammar' */
-        Builder::macro('whereLike', function (string | array $attributes, ?string $searchTerm) {
+        /** Case-insensitive, User::whereAllLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina hammar' */
+        Builder::macro('whereAllLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
                 foreach (\Arr::wrap($attributes) as $attribute) {
-                    $this->where($attribute, $operator, "%{$searchTerm}%");
+                    $this->whereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                 }
             }
 
             return $this;
         });
 
-        /** User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina hammar' */
-        Builder::macro('orWhereLike', function (string | array $attributes, ?string $searchTerm) {
+        /** Case-insensitive, User::orWhereAnyLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina hammar' */
+        Builder::macro('orWhereAnyLike', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
-                $searchTerm = strtolower($searchTerm);
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm, $operator) {
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
-                        $query->orWhere($attribute, $operator, "%{$searchTerm}%");
+                        $query->orWhereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                     }
                 });
             }
@@ -105,23 +94,21 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
                 foreach (\Arr::wrap($attributes) as $attribute) {
-                    $this->where($attribute, $operator, "%{$searchTerm}%");
+                    $this->whereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                 }
             }
 
             return $this;
         });
 
-        /** Case-insensitive, User::orWhereLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
+        /** Case-insensitive, User::orWhereContains(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
         Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm) {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm, $operator) {
+                $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
-                        $query->orWhere($attribute, $operator, "%{$searchTerm}%");
+                        $query->orWhereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                     }
                 });
             }
@@ -246,8 +233,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm): Builder
         {
             if ($searchTerm) {
-                $operator = LaravelExtrasServiceProvider::getLikeOperator();
-                $this->where(function (Builder $query) use ($attributes, $searchTerm, $operator) {
+                $this->where(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->when(
                             str_contains($attribute, '.'),
@@ -255,11 +241,11 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
                                 [$relationName, $relationAttribute] = explode('.', $attribute);
 
                                 $query->orWhereHas($relationName, function (Builder $query) use ($relationAttribute, $searchTerm) {
-                                    $query->where($relationAttribute, $operator, "%{$searchTerm}%");
+                                    $query->whereLike($relationAttribute, "%{$searchTerm}%", caseSensitive: false);
                                 });
                             },
                             function (Builder $query) use ($attribute, $searchTerm) {
-                                $query->orWhere($attribute, $operator, "%{$searchTerm}%");
+                                $query->orWhereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                             }
                         );
                     }
