@@ -261,15 +261,15 @@ PrettyPrint::dump($complexArray);
 
 ## Breaking Changes from Previous Versions
 
-### Query Macro Renames (v2.0+)
+### Query Macro Renames (v4.0+)
 - `whereLike()` → `whereAllLike()`
 - `orWhereLike()` → `orWhereAnyLike()`
 
-### Version Requirements (v2.0+)
+### Version Requirements (v4.0+)
 - Minimum PHP version: 8.3+ (was 8.1+)
 - Minimum Laravel version: 11.0+ (was 9.0+)
 
-### Implementation Changes (v2.0+)
+### Implementation Changes (v4.0+)
 - All query macros now use Laravel's native `whereLike()` method with `caseSensitive: false`
 - Removed custom database operator detection in favor of Laravel's built-in handling
 - Improved query logic for proper OR condition chaining
