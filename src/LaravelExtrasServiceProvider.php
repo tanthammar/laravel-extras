@@ -32,7 +32,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     protected function registerBuilderMacros(): void
     {
         /** Case-insensitive, User::whereStartsWith('email', 'tin')->get() will return users where column 'email' starts with 'tin' */
-        Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm) {
+        Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $this->whereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
@@ -41,7 +41,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive */
-        Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm) {
+        Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $this->orWhereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
@@ -58,7 +58,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             return $this;
         });
 
-        Builder::macro('orWhereEndsWith', function (string $attribute, ?string $searchTerm) {
+        Builder::macro('orWhereEndsWith', function (string $attribute, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $this->orWhereLike($attribute, "%{$searchTerm}", caseSensitive: false);
             }
@@ -67,7 +67,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::whereAllLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina hammar' */
-        Builder::macro('whereAllLike', function (string | array $attributes, ?string $searchTerm) {
+        Builder::macro('whereAllLike', function (string | array $attributes, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 foreach (\Arr::wrap($attributes) as $attribute) {
                     $this->whereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
@@ -78,7 +78,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::orWhereAnyLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina hammar' */
-        Builder::macro('orWhereAnyLike', function (string | array $attributes, ?string $searchTerm) {
+        Builder::macro('orWhereAnyLike', function (string | array $attributes, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
@@ -91,7 +91,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::whereContains(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina' AND 'hammar' */
-        Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm) {
+        Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 foreach (\Arr::wrap($attributes) as $attribute) {
@@ -103,7 +103,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /** Case-insensitive, User::orWhereContains(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
-        Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm) {
+        Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm): Builder {
             if ($searchTerm) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
