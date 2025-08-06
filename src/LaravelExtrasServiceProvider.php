@@ -33,7 +33,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
     {
         /** Case-insensitive, User::whereStartsWith('email', 'tin')->get() will return users where column 'email' starts with 'tin' */
         Builder::macro('whereStartsWith', function (string $attribute, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->whereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
 
@@ -42,7 +42,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive */
         Builder::macro('orWhereStartsWith', function (string $attribute, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->orWhereLike($attribute, "{$searchTerm}%", caseSensitive: false);
             }
 
@@ -51,7 +51,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive, User::whereEndsWith('email', 'gmail.com')->get() will return users where column 'email' ends with 'gmail.com' */
         Builder::macro('whereEndsWith', function (string $attribute, ?string $searchTerm) {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->whereLike($attribute, "%{$searchTerm}", caseSensitive: false);
             }
 
@@ -59,7 +59,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         Builder::macro('orWhereEndsWith', function (string $attribute, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->orWhereLike($attribute, "%{$searchTerm}", caseSensitive: false);
             }
 
@@ -68,7 +68,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive, User::whereAllLike(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina hammar' */
         Builder::macro('whereAllLike', function (string | array $attributes, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 foreach (\Arr::wrap($attributes) as $attribute) {
                     $this->whereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
                 }
@@ -79,7 +79,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive, User::orWhereAnyLike(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina hammar' */
         Builder::macro('orWhereAnyLike', function (string | array $attributes, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->orWhereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
@@ -92,7 +92,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive, User::whereContains(['name', 'email'], 'tina hammar')->get() will return users where BOTH 'name' and 'email' contains 'tina' AND 'hammar' */
         Builder::macro('whereContains', function (string | array $attributes, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 foreach (\Arr::wrap($attributes) as $attribute) {
                     $this->whereLike($attribute, "%{$searchTerm}%", caseSensitive: false);
@@ -104,7 +104,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
 
         /** Case-insensitive, User::orWhereContains(['name', 'email'], 'tina hammar')->get() will return users where 'name' OR 'email' contains 'tina' AND 'hammar' */
         Builder::macro('orWhereContains', function (string | array $attributes, ?string $searchTerm): Builder {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $searchTerm = strtolower(str_replace(' ', '%', $searchTerm));
                 $this->orWhere(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
@@ -122,10 +122,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
          */
         Builder::macro('whereTranslatableStartsWith', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -142,10 +142,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
          */
         Builder::macro('orWhereTranslatableStartsWith', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -159,10 +159,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
         Builder::macro('whereTranslatableLike', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -177,10 +177,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo Bar' or 'foo bar' */
         Builder::macro('orWhereTranslatableLike', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -195,10 +195,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive and skipped words, Event::whereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
         Builder::macro('whereTranslatableContains', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -213,10 +213,10 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Case-insensitive and skipped words, Event::orWhereTranslatableLike('name', 'Foo bar')->get() will return events where 'name' contains 'Foo' or 'Bar' or 'foo baz bar' */
         Builder::macro('orWhereTranslatableContains', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
-                $driver = config('database.default');
+                $driver = self::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -232,7 +232,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Post::whereRelationsLike(['name', 'text', 'author.name', 'tags.name'], $searchTerm)->get(); */
         Builder::macro('whereRelationsLike', function ($attributes, ?string $searchTerm): Builder
         {
-            if ($searchTerm) {
+            if (filled($searchTerm)) {
                 $this->where(function (Builder $query) use ($attributes, $searchTerm) {
                     foreach (\Arr::wrap($attributes) as $attribute) {
                         $query->when(
@@ -260,7 +260,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
 
             $locale ??= app()->getLocale();
-            $driver = config('database.default');
+            $driver = self::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
@@ -283,7 +283,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         Builder::macro('orderByLocale', function (string $column, string $order = 'asc'): Builder {
-            $driver = config('database.default');
+            $driver = self::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             match ($driver) {
@@ -296,7 +296,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         QueryBuilder::macro('orderByLocale', function (string $column, string $order = 'asc'): QueryBuilder {
-            $driver = config('database.default');
+            $driver = self::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             match ($driver) {
@@ -415,9 +415,12 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
     }
 
-    public static function getLikeOperator(): string
+    public static function getDriver(\Illuminate\Database\Grammar $grammar): string
     {
-        $driver = config('database.default');
-        return $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
+        return match(true) {
+            $grammar instanceof \Illuminate\Database\Query\Grammars\PostgresGrammar => 'pgsql',
+            $grammar instanceof \Illuminate\Database\Query\Grammars\MySqlGrammar => 'mysql',
+            default => throw new \InvalidArgumentException('Unsupported database grammar: ' . get_class($grammar)),
+        };
     }
 }
