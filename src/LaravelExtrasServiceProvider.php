@@ -125,7 +125,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -145,7 +145,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = strtolower($searchTerm) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -162,7 +162,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -180,7 +180,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower($searchTerm) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -198,7 +198,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->whereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -216,7 +216,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
             if (filled($searchTerm)) {
                 $locale = $locale ?: app()->getLocale();
                 $searchTerm = '%' . strtolower(str_replace(' ', '%', $searchTerm)) . '%';
-                $driver = self::getDriver($this->getGrammar());
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
 
                 match ($driver) {
                     'pgsql' => $this->orWhereRaw("lower($column->>'{$locale}') ilike ?", [$searchTerm]),
@@ -260,7 +260,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         {
 
             $locale ??= app()->getLocale();
-            $driver = self::getDriver($this->getGrammar());
+            $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
@@ -283,7 +283,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         Builder::macro('orderByLocale', function (string $column, string $order = 'asc'): Builder {
-            $driver = self::getDriver($this->getGrammar());
+            $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             match ($driver) {
@@ -296,7 +296,7 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         QueryBuilder::macro('orderByLocale', function (string $column, string $order = 'asc'): QueryBuilder {
-            $driver = self::getDriver($this->getGrammar());
+            $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
             match ($driver) {
