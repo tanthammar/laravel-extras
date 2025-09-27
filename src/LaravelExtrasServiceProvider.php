@@ -117,6 +117,26 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         });
 
         /**
+         * Case-insensitive, Event::whereTranslatable('name', 'Foo')->get() will
+         * return events where localized 'name' equals with 'Foo' or 'foo'
+         */
+        Builder::macro('whereTranslatable', function (string $column, ?string $searchTerm, ?string $locale = null): Builder
+        {
+            if (filled($searchTerm)) {
+                $locale = $locale ?: app()->getLocale();
+                $searchTerm = strtolower(trim($searchTerm));
+                $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
+
+                match ($driver) {
+                    'pgsql' => $this->whereRaw("lower($column->>'{$locale}') = ?", [$searchTerm]),
+                    'mysql' => $this->whereRaw("lower($column->\"$.{$locale}\") = ?", [$searchTerm]),
+                    default => $this->whereStartsWith($column, $searchTerm)
+                };
+            }
+            return $this;
+        });
+
+        /**
          * Case-insensitive, Event::whereTranslatableStartsWith('name', 'Foo')->get() will
          * return events where localized 'name' starts with 'Foo' or 'foo'
          */
