@@ -278,12 +278,14 @@ class LaravelExtrasServiceProvider extends PackageServiceProvider
         /** Order alphabetically on Spatie translatable column */
         Builder::macro('orderByTranslation', function (string $field = 'name', $order = 'asc', $locale = null): Builder
         {
-
             $locale ??= app()->getLocale();
             $driver = LaravelExtrasServiceProvider::getDriver($this->getGrammar());
             $collation = LaravelExtrasServiceProvider::getLocaleCollation($driver);
 
-            if (property_exists($this->model, 'translatable') && in_array($field, $this->model->translatable, true)) {
+            // Extract column name from qualified field (e.g., 'table.column' -> 'column')
+            $columnName = \Str::afterLast($field, '.');
+
+            if (property_exists($this->model, 'translatable') && in_array($columnName, $this->model->translatable, true)) {
                 match ($driver) {
                     'pgsql' => $this->orderByRaw("$field->>'$locale' COLLATE \"$collation\" $order"),
                     'mysql' => $this->orderByRaw("json_unquote(json_extract(`$field`, '$.\"$locale\"')) COLLATE $collation $order"),
