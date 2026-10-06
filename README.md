@@ -1,4 +1,4 @@
-# Helpers and Macros for Laravel
+ 
 
 ## Requirements
 - PHP 8.3+
