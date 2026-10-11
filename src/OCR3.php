@@ -40,7 +40,7 @@ class OCR3
 
         // Add the length number
         if ($length) {
-            $base_number .= substr(strlen($base_number) + 2, -1);
+            $base_number .= (strlen($base_number) + 2) % 10;
         }
 
         // Convert the number into an array
@@ -65,7 +65,7 @@ class OCR3
     /** not unique, simple random */
     public static function fake(): string
     {
-        return self::make(fake()->randomDigitNotNull(6));
+        return self::make((string) fake()->randomNumber(6, true));
     }
 
     /**
@@ -115,7 +115,7 @@ class OCR3
             //sleep for 0.000001 seconds to avoid collision
             usleep(100);
 
-            $microtimeStr = (int) str_replace(".", "", strval(microtime(true)));
+            $microtimeStr = str_replace(".", "", strval(microtime(true)));
             $ocr = self::make($microtimeStr);
 
             //use db constraints to catch duplicate entries

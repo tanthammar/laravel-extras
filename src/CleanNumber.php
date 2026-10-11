@@ -10,7 +10,7 @@ class CleanNumber
 {
     public static function make(?string $number = ''): string | array | null
     {
-        if ($number && $number !== '') {
+        if ($number) {
             return preg_replace('/[^0-9]/', '', $number);
         }
 
